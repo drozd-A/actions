@@ -1,0 +1,73 @@
+name: UTAP Up Check
+
+on:
+
+  workflow_dispatch:
+
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  utap-csc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify UTAP CSC status
+        id: identify-status
+        run: |
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" https://utapcsc.utm.utoronto.ca/utap/)
+          echo "status_code=$status_code" >> $GITHUB_OUTPUT
+      - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          status_code=${{ steps.identify-status.outputs.status_code }}
+          if [ "$status_code" -gt 399 ]; then
+            curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"content": "🚨 UTAP CSC is down!"}' \
+            $DISCORD_WEBHOOK_URL
+          else
+            echo "Status code: $status_code. Nothing to do..."
+          fi
+  utap-mat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify UTAP MAT status
+        id: identify-status
+        run: |
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" https://utapmat.utm.utoronto.ca/utap/)
+          echo "status_code=$status_code" >> $GITHUB_OUTPUT
+      - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          status_code=${{ steps.identify-status.outputs.status_code }}
+          if [ "$status_code" -gt 399 ]; then
+            curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"content": "🚨 UTAP MAT is down!"}' \
+            $DISCORD_WEBHOOK_URL
+          else
+            echo "Status code: $status_code. Nothing to do..."
+          fi
+  utap-sta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify UTAP STA status
+        id: identify-status
+        run: |
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" https://utapsta.utm.utoronto.ca/utap/)
+          echo "status_code=$status_code" >> $GITHUB_OUTPUT
+      - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          status_code=${{ steps.identify-status.outputs.status_code }}
+          if [ "$status_code" -gt 399 ]; then
+            curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"content": "🚨 UTAP STA is down!"}' \
+            $DISCORD_WEBHOOK_URL
+          else
+            echo "Status code: $status_code. Nothing to do..."
+          fi
