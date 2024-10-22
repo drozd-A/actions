@@ -1,0 +1,23 @@
+name: UTAP Up Check
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  utap-csc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify UTAP CSC status
+        id: identify-status
+        run: |
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" https://utapcsc.utm.utoronto.ca/utap/)
+          echo "::set-output name=status_code::$status_code"
+      - name: Send to Discord
+        run: |
+          status_code=${{ steps.identify-status.outputs.status_code }}
+          if [ "$status_code" -gt 399]; then
+            echo "SEND TO DISCORD"
+          else
+            echo "DO NOTHING"
+          fi
